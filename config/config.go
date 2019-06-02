@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -12,7 +13,13 @@ var Config *viper.Viper
 // InitConfigs is used to initialise the configs
 func InitConfigs() {
 	Config = viper.New()
-	Config.SetConfigFile("config.json")
+	home := os.Getenv("HOME")
+	if home == "" {
+		fmt.Println("Please set $HOME path")
+	}
+	// fmt.Println("Path home:", home)
+	Config.SetConfigFile(home + "/configs/config.json")
+
 	err := Config.ReadInConfig()
 	if err != nil {
 		panic(err)

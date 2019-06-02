@@ -23,15 +23,16 @@ func NewMerchantService() *MerchantService {
 }
 
 // CreateMerchant is used to add new merchants to the system
-func (ms *MerchantService) CreateMerchant(args []string) {
+// Args name interest
+func (ms *MerchantService) CreateMerchant(args []string) bool {
 	if len(args) != 2 {
 		fmt.Println("Incorrect input, try 'help'")
-		return
+		return false
 	}
 	interestRate, err := utils.StrToFloat32(args[1])
 	if err != nil {
 		fmt.Println("Please provide valid rate of interest")
-		return
+		return false
 	}
 	merchant := models.Merchant{
 		Name:          args[0],
@@ -41,28 +42,29 @@ func (ms *MerchantService) CreateMerchant(args []string) {
 	}
 	if !merchant.ValidateAndClean() {
 		fmt.Println("Invalid merchant details")
-	} else {
-		err := ms.merchantData.AddNewMerchant(merchant)
-		if err != nil {
-			fmt.Println("Merchant creation failed ..!", err)
-			return
-		}
-		fmt.Printf("Created new merchant: \n %+v\n", merchant)
-		return
+		return false
 	}
-	fmt.Println("Merchant creation failed ..!")
+	err = ms.merchantData.AddNewMerchant(merchant)
+	if err != nil {
+		fmt.Println("Merchant creation failed ..!", err)
+		return false
+	}
+	fmt.Printf("Created new merchant: \n %+v\n", merchant)
+	return true
+
 }
 
 // ChangeMerchantInterest is used to add new merchants to the system
-func (ms *MerchantService) ChangeMerchantInterest(args []string) {
+// Args : merchant-name interest
+func (ms *MerchantService) ChangeMerchantInterest(args []string) bool {
 	if len(args) != 2 {
 		fmt.Println("Incorrect input, try 'help'")
-		return
+		return false
 	}
 	interestRate, err := utils.StrToFloat32(args[1])
 	if err != nil {
 		fmt.Println("Please provide valid rate of interest")
-		return
+		return false
 	}
 	merchant := models.Merchant{
 		InterestRate: interestRate,
@@ -70,25 +72,28 @@ func (ms *MerchantService) ChangeMerchantInterest(args []string) {
 	}
 	if !merchant.ValidateAndClean() {
 		fmt.Println("Invalid Merchant details")
-		return
+		return false
 	}
 	err = ms.merchantData.UpdateMerchantByName(merchant.Name, merchant)
 	if err != nil {
 		fmt.Println("Invalid Merchant details")
-		return
+		return false
 	}
+	return true
 }
 
 // GetMerchantDiscount is used to add new merchants to the system
-func (ms *MerchantService) GetMerchantDiscount(args []string) {
+// Args : discount merchant-name
+func (ms *MerchantService) GetMerchantDiscount(args []string) bool {
 	if len(args) != 2 {
 		fmt.Println("Incorrect input, try 'help'")
-		return
+		return false
 	}
 	merchant, err := ms.merchantData.GetMerchantByName(args[1])
 	if err != nil {
 		fmt.Println("Error in fetching details for merchant:", args[1])
-		return
+		return false
 	}
 	fmt.Println("Merchant name:", merchant.Name, " Total amount recieved:", merchant.TotalAmount, " Discount:", merchant.TotalDiscount, " Current interest rate :", merchant.InterestRate)
+	return true
 }

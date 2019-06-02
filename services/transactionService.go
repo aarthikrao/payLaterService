@@ -27,14 +27,16 @@ func NewTransactionService() *TransactionService {
 }
 
 // TransferToMerchant is used to transfer the amount from user to merchant
-func (ts *TransactionService) TransferToMerchant(args []string) {
+// Args : user-name merchant-name amount
+func (ts *TransactionService) TransferToMerchant(args []string) bool {
 	if len(args) != 3 {
 		fmt.Println("Incorrect input, try 'help'")
-		return
+		return false
 	}
 	amount, err := utils.StrToFloat32(args[2])
 	if err != nil {
 		fmt.Println("Please enter a valid amount:", amount)
+		return false
 	}
 	transaction := models.Transaction{
 		UserName:     args[0],
@@ -45,14 +47,14 @@ func (ts *TransactionService) TransferToMerchant(args []string) {
 	user, err := ts.ud.GetUserByName(transaction.UserName)
 	if err != nil || user.Name == "" {
 		fmt.Println("Invalid username")
-		return
+		return false
 	}
 
 	// Validate merchant
 	merchant, err := ts.md.GetMerchantByName(transaction.MerchantName)
 	if err != nil || merchant.Name == "" {
 		fmt.Println("Invalid Merchant")
-		return
+		return false
 	}
 	// Calculate the amount after interest and populate the transaction struct
 	merchantAmount, ourDiscount := utils.GetAmountAfterInterest(transaction.TotalAmount, merchant.InterestRate)
@@ -62,12 +64,13 @@ func (ts *TransactionService) TransferToMerchant(args []string) {
 
 	if !transaction.ValidateAndClean() {
 		fmt.Println("Invalid transaction")
-		return
+		return false
 	}
 	// Begin transaction
-	err = ts.td.RunTransaction(transaction)
+	returnResult, err := ts.td.RunTransaction(transaction)
 	if err != nil {
 		fmt.Println("Transaction unsuccessful")
+		return false
 	}
-
+	return returnResult
 }

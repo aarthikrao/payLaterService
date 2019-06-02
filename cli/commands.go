@@ -20,6 +20,7 @@ import (
 // Transaction : # transaction user-name merchant-name amount
 // Update merchant interest rate : # update-merchant-interest merchant-name interest
 // Merchant details: # report discount merchant-name
+// User payback : # user-payback user-name amount
 // User dues for a particular user # report dues user-name
 // Find users at credit limit # report users-at-credit-limit
 // All user dues # report total-dues

@@ -20,10 +20,11 @@ func NewTransactionData() *TransactionData {
 }
 
 // RunTransaction is used to transfer money from user account to merchant account
-func (ts *TransactionData) RunTransaction(txn models.Transaction) (err error) {
+func (ts *TransactionData) RunTransaction(txn models.Transaction) (returnResult bool, err error) {
 	tx, err := conn.PGDB.Begin()
 	if err != nil {
 		fmt.Println("Error in begin transaction")
+		returnResult = false
 		return
 	}
 
@@ -32,11 +33,13 @@ func (ts *TransactionData) RunTransaction(txn models.Transaction) (err error) {
 	if err != nil {
 		fmt.Println("Error in decrementing value from user")
 		tx.Rollback()
+		returnResult = false
 		return
 	}
 	if userRes.RowsAffected() != 1 {
 		fmt.Println("Transaction rejected due to insufficient balance")
 		tx.Rollback()
+		returnResult = false
 		return
 	}
 	// Adding amount to merchant
@@ -44,16 +47,19 @@ func (ts *TransactionData) RunTransaction(txn models.Transaction) (err error) {
 	if err != nil {
 		fmt.Println("Error in adding amount to merchant account")
 		tx.Rollback()
+		returnResult = false
 		return
 	}
 	if merchantRes.RowsAffected() != 1 {
 		fmt.Println("Transaction rejected: Amount not credited to merchant")
 		tx.Rollback()
+		returnResult = false
 		return
 	}
 	tx.Insert(&txn)
 	tx.Commit()
 	fmt.Printf("Transaction successful : %+v", txn)
+	returnResult = true
 	return
 }
 
