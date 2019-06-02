@@ -20,4 +20,4 @@
 | Find users at credit limit | report users-at-credit-limit |
 | All user dues | report total-dues |
 | Ctrl + c / exit | Safe exit |
-| help | All available commands |
+| All available commands | help |
