@@ -26,8 +26,8 @@ func NewTransactionService() *TransactionService {
 	}
 }
 
-// TransferToMerchent is used to transfer the amount from user to merchant
-func (ts *TransactionService) TransferToMerchent(args []string) {
+// TransferToMerchant is used to transfer the amount from user to merchant
+func (ts *TransactionService) TransferToMerchant(args []string) {
 	if len(args) != 3 {
 		fmt.Println("Incorrect input, try 'help'")
 		return
@@ -54,11 +54,16 @@ func (ts *TransactionService) TransferToMerchent(args []string) {
 		fmt.Println("Invalid Merchant")
 		return
 	}
+	// Calculate the amount after interest and populate the transaction struct
 	merchantAmount, ourDiscount := utils.GetAmountAfterInterest(transaction.TotalAmount, merchant.InterestRate)
 	transaction.MerchantAmount = merchantAmount
 	transaction.OurDiscount = ourDiscount
 	transaction.InterestRate = merchant.InterestRate
 
+	if !transaction.ValidateAndClean() {
+		fmt.Println("Invalid transaction")
+		return
+	}
 	// Begin transaction
 	err = ts.td.RunTransaction(transaction)
 	if err != nil {

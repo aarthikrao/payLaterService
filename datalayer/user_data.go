@@ -1,8 +1,11 @@
 package datalayer
 
 import (
+	"fmt"
+
 	conn "github.com/aarthikrao/payLaterService/connections"
 	"github.com/aarthikrao/payLaterService/models"
+	"github.com/go-pg/pg/orm"
 )
 
 // UserData will be used to fetched data
@@ -28,7 +31,7 @@ func (ud *UserData) AddNewUser(user models.User) (err error) {
 
 // UpdateUserByName is used to update user data
 func (ud *UserData) UpdateUserByName(name string, user models.User) (err error) {
-	_, err = conn.PGDB.Model(&user).Where("name = ?", name).UpdateNotNull(user)
+	_, err = conn.PGDB.Model(&user).Where("name = ?", name).UpdateNotNull(&user)
 	return
 }
 
@@ -43,5 +46,13 @@ func (ud *UserData) GetAllUsers() (users []models.User, err error) {
 func (ud *UserData) GetAllUsersWithQuery(query string) (users []models.User, err error) {
 	err = conn.PGDB.Model(&users).Where(query).Select()
 	// TODO Add limit
+	return
+}
+
+// PaybackUserDues is used for user-payback
+func (ud *UserData) PaybackUserDues(amount float32, name string) (result orm.Result, err error) {
+	amountString := fmt.Sprintf("%f", amount)
+	query := "update users set spent = spent - " + amountString + " where spent - " + amountString + " >= 0 and name = '" + name + "'"
+	result, err = conn.PGDB.Exec(query)
 	return
 }

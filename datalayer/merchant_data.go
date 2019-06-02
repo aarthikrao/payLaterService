@@ -27,7 +27,7 @@ func (md *MerchantData) GetMerchantByName(name string) (merchant models.Merchant
 
 // UpdateMerchantByName is used to update the merchant data by name
 func (md *MerchantData) UpdateMerchantByName(name string, merchant models.Merchant) (err error) {
-	_, err = conn.PGDB.Model(&merchant).Where("name = ? ", name).UpdateNotNull(merchant)
+	_, err = conn.PGDB.Model(&merchant).Where("name = ? ", name).UpdateNotNull(&merchant)
 	return
 }
 

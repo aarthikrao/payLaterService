@@ -42,7 +42,7 @@ func (ts *TransactionData) RunTransaction(txn models.Transaction) (err error) {
 	// Adding amount to merchant
 	merchantRes, err := addAmountToMerchant(tx, txn.MerchantName, txn.MerchantAmount, txn.OurDiscount)
 	if err != nil {
-		fmt.Println("Error in decrementing value from user")
+		fmt.Println("Error in adding amount to merchant account")
 		tx.Rollback()
 		return
 	}

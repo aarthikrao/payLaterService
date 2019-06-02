@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/aarthikrao/payLaterService/connections"
 
@@ -14,23 +13,32 @@ import (
 
 // For ,more info on cli library refer : https://github.com/abiosoft/ishell
 
-// Add all possible commands here:
+// #########################  Add all possible commands here ############################
+//
 // New User: # new-user name email credit-limit
 // New Merchant: # new-merchant name interest
+// Transaction : # transaction user-name merchant-name amount
+// Update merchant interest rate : # update-merchant-interest merchant-name interest
+// Merchant details: # report discount merchant-name
+// User dues for a particular user # report dues user-name
+// Find users at credit limit # report users-at-credit-limit
+// All user dues # report total-dues
+//
+// ######################################################################################
 
-// UDS is used for all user related operations
-var UDS *services.UserService
+// US is used for all user related operations
+var US *services.UserService
 
-// MDS is used for all merchnat related operations
-var MDS *services.MerchantService
+// MS is used for all merchnat related operations
+var MS *services.MerchantService
 
 // TS is used for transaction related services
 var TS *services.TransactionService
 
 // INITServices is used to initiate services
 func INITServices() {
-	UDS = services.NewUserService()
-	MDS = services.NewMerchantService()
+	US = services.NewUserService()
+	MS = services.NewMerchantService()
 	TS = services.NewTransactionService()
 }
 
@@ -43,7 +51,7 @@ func RunCli() {
 		Name: "new-user",
 		Help: "usage : new-user name email credit-limit",
 		Func: func(c *ishell.Context) {
-			UDS.CreateUser(c.Args)
+			US.CreateUser(c.Args)
 		},
 	})
 
@@ -52,7 +60,7 @@ func RunCli() {
 		Name: "new-merchant",
 		Help: "usage : new-merchant name interest",
 		Func: func(c *ishell.Context) {
-			MDS.CreateMerchant(c.Args)
+			MS.CreateMerchant(c.Args)
 		},
 	})
 
@@ -61,37 +69,29 @@ func RunCli() {
 		Name: "transaction",
 		Help: "usage : transaction user-name merchant-name amount",
 		Func: func(c *ishell.Context) {
-			TS.TransferToMerchent(c.Args)
+			TS.TransferToMerchant(c.Args)
 		},
 	})
 
-	// commands related to update merchant
+	// commands related to update merchant interest
 	shell.AddCmd(&ishell.Cmd{
 		Name: "update-merchant-interest",
 		Help: "usage : update-merchant-interest merchant-name interest",
 		Func: func(c *ishell.Context) {
-			if len(c.Args) != 2 {
-				fmt.Println("Incorrect input, try 'help'")
-				return
-			}
-			fmt.Println("update-merchant-interest :", strings.Join(c.Args, " "))
+			MS.ChangeMerchantInterest(c.Args)
 		},
 	})
 
-	// commands related to update merchant
+	// commands related to user-payback
 	shell.AddCmd(&ishell.Cmd{
 		Name: "user-payback",
 		Help: "usage : user-payback user-name amount",
 		Func: func(c *ishell.Context) {
-			if len(c.Args) != 2 {
-				fmt.Println("Incorrect input, try 'help'")
-				return
-			}
-			fmt.Println("user-payback :", strings.Join(c.Args, " "))
+			US.Payback(c.Args)
 		},
 	})
 
-	// commands related to update merchant
+	// commands related to reporting
 	shell.AddCmd(&ishell.Cmd{
 		Name: "report",
 		Help: "usage : report discount merchant-name || report dues user-name || report users-at-credit-limit || report total-dues",
@@ -102,35 +102,20 @@ func RunCli() {
 			}
 			switch c.Args[0] {
 			case "discount":
-				if len(c.Args) != 2 {
-					fmt.Println("Incorrect input, try 'help'")
-					return
-				}
-				fmt.Println("discount :", strings.Join(c.Args, " "))
+				MS.GetMerchantDiscount(c.Args)
 			case "dues":
-				if len(c.Args) != 2 {
-					fmt.Println("Incorrect input, try 'help'")
-					return
-				}
-				fmt.Println("dues :", strings.Join(c.Args, " "))
+				US.GetUserDues(c.Args)
 			case "users-at-credit-limit":
-				if len(c.Args) != 1 {
-					fmt.Println("Incorrect input, try 'help'")
-					return
-				}
-				fmt.Println("users-at-credit-limit :", strings.Join(c.Args, " "))
+				US.GetUsersAtCreditLimit(c.Args)
 			case "total-dues":
-				if len(c.Args) != 1 {
-					fmt.Println("Incorrect input, try 'help'")
-					return
-				}
-				fmt.Println("total-dues :", strings.Join(c.Args, " "))
+				US.GetTotalUserDues(c.Args)
 			default:
 				fmt.Println("Invalid command. Please refer 'help'")
 			}
 		},
 	})
 
+	// add all program termination related logic here
 	shell.Interrupt(func(c *ishell.Context, count int, str string) {
 		fmt.Println("Closing db connections")
 		connections.ShutDown()
